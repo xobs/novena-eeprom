@@ -59,6 +59,31 @@ int eeprom_read_i2c(struct eeprom_dev *dev, int addr, void *data, int count) {
 	return 0;
 }
 
+int eeprom_write_i2c(struct eeprom_dev *dev, int addr, void *data, int count) {
+	struct i2c_rdwr_ioctl_data session;
+	struct i2c_msg messages[1];
+	uint8_t data_buf[2+count];
+
+	data_buf[0] = addr>>8;
+	data_buf[1] = addr;
+	memcpy(&data_buf[2], data, count);
+
+	messages[0].addr = dev->addr;
+	messages[0].flags = 0;
+	messages[0].len = sizeof(data_buf);
+	messages[0].buf = data_buf;
+
+	session.msgs = messages;
+	session.nmsgs = 1;
+
+	if(ioctl(dev->fd, I2C_RDWR, &session) < 0) {
+		perror("Unable to communicate with i2c device");
+		return 1;
+	}
+
+	return 0;
+}
+
 int eeprom_read(struct eeprom_dev *dev) {
 	int ret;
 
@@ -71,6 +96,11 @@ int eeprom_read(struct eeprom_dev *dev) {
 
 	dev->cached = 1;
 	return 0;
+}
+
+int eeprom_write(struct eeprom_dev *dev) {
+	dev->cached = 1;
+	return eeprom_write_i2c(dev, 0, &dev->data, sizeof(dev->data));
 }
 
 struct eeprom_dev *eeprom_open(char *path, int addr) {
@@ -109,6 +139,33 @@ int eeprom_close(struct eeprom_dev **dev) {
 	return 0;
 }
 
+int print_usage(char *name) {
+	printf("Usage:\n"
+	"  %s [-m 'xx:xx:xx:xx:xx:xx'] [-s 'serial'] [-f features] [-w]\n"
+	"\n"
+	"If no arguments are specified, then the current EEPROM contents\n"
+	"will be read and printed.\n"
+	"\n"
+	"Specify -w to write a new EEPROM value.  Any unspecified fields\n"
+	"will be set to 0.\n"
+	"\n"
+	"    -m    Specify a MAC address for the Gigabit Ethernet\n"
+	"    -s    Specify the device's serial number\n"
+	"    -f    A comma-delimited list of features present\n"
+	"    -w    Actually write the value to the EEPROM\n"
+	"\n"
+	"Valid features:\n"
+	"    es8328     There is an ES8328 audio codec present\n"
+	"    pmb        A power management board is attached\n"
+	"    retina     A retina LVDS display is attached\n"
+	"    pixelqi    A PixelQi LVDS display is attached\n"
+	"\n"
+	"Example:\n"
+	"  %s -f es8328,retina -s 12345 -w\n"
+	"", name, name);
+	return 0;
+}
+
 int main(int argc, char **argv) {
 	struct eeprom_dev *dev;
 	int ret;
@@ -138,6 +195,9 @@ int main(int argc, char **argv) {
 				dev->data.mac[4], dev->data.mac[5]);
 		printf("\tFeatures:    0x%x\n", dev->data.features);
 	}
+
+	else
+		print_usage(argv[0]);
 
 quit:
 	eeprom_close(&dev);
