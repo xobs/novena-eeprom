@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define NOVENA_SIGNATURE "Novena"
+#define NOVENA_VERSION 1
+
 /*
  * For structure documentation, see:
  * http://www.kosagi.com/w/index.php?title=Novena/EEPROM

@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
+#include <ctype.h>
 
 #include "novena-eeprom.h"
 
@@ -26,6 +27,85 @@ struct eeprom_dev {
 	/* Contents of the EEPROM */
 	struct novena_eeprom_data 	data;
 };
+
+struct feature {
+	uint32_t	flags;
+	char		*name;
+};
+
+static struct feature features[] = {
+	{
+		.name = "es8328",
+		.flags = 0x01,
+	},
+	{
+		.name = "pmb",
+		.flags = 0x02,
+	},
+	{
+		.name = "retina",
+		.flags = 0x04,
+	},
+	{
+		.name = "pixelqi",
+		.flags = 0x08,
+	},
+	{}
+};
+
+int parse_features(char *str) {
+	char *ctx;
+	char *sep = ",";
+	char *word;
+	uint16_t flags = 0;
+
+	for (word = strtok_r(str, sep, &ctx);
+	     word;
+	     word = strtok_r(NULL, sep, &ctx)) {
+
+		struct feature *feature = features;
+		while (feature->name) {
+			if (!strcmp(feature->name, word)) {
+				flags |= feature->flags;
+				break;
+			}
+			feature++;
+		}
+		if (!feature->name) {
+			fprintf(stderr, "Unrecognized feature \"%s\"\n", word);
+			return -1;
+		}
+	}
+	return flags;
+}
+
+int parse_mac(char *str, void *out) {
+	int i;
+	char *mac = out;
+	for (i=0; i<6; i++) {
+		if (!isdigit(str[0]) &&
+			(tolower(str[0]) < 'a' || tolower(str[0]) > 'f')) {
+			printf("Unable to parse MAC address\n");
+			return 1;
+		}
+		if (!isdigit(str[1]) &&
+			(tolower(str[1]) < 'a' || tolower(str[1]) > 'f')) {
+			printf("Unable to parse MAC address\n");
+			return 1;
+		}
+
+		*mac = strtoul(str, NULL, 16);
+		mac++;
+		str+=2;
+		if (*str == '-' || *str == ':' || *str == '.')
+			str++;
+	}
+	if (*str) {
+		printf("Unable to parse MAC address\n");
+		return 1;
+	}
+	return 0;
+}
 
 int eeprom_read_i2c(struct eeprom_dev *dev, int addr, void *data, int count) {
 	struct i2c_rdwr_ioctl_data session;
@@ -166,40 +246,136 @@ int print_usage(char *name) {
 	return 0;
 }
 
+int print_eeprom_data(struct eeprom_dev *dev) {
+	int ret;
+	ret = eeprom_read(dev);
+	if (ret)
+		return ret;
+
+	printf("Current EEPROM settings:\n");
+	printf("\tSignature:   %c%c%c%c%c%c\n",
+			dev->data.signature[0],
+			dev->data.signature[1],
+			dev->data.signature[2],
+			dev->data.signature[3],
+			dev->data.signature[4],
+			dev->data.signature[5]);
+	printf("\tVersion:     %d\n", dev->data.version);
+	printf("\tSerial:      %d\n", dev->data.serial);
+	printf("\tMAC:         %02x:%02x:%02x:%02x:%02x:%02x\n",
+			dev->data.mac[0], dev->data.mac[1],
+			dev->data.mac[2], dev->data.mac[3],
+			dev->data.mac[4], dev->data.mac[5]);
+	printf("\tFeatures:    0x%x", dev->data.features);
+	if (dev->data.features) {
+		int matched = 0;
+		int flags = dev->data.features;
+		struct feature *feature = features;
+		while (feature->name) {
+			if (feature->flags & flags) {
+				if (!matched)
+					printf(" (%s", feature->name);
+				else
+					printf(", %s", feature->name);
+				matched++;
+				flags &= ~feature->flags;
+			}
+			feature++;
+		}
+		if (matched)
+			printf(")");
+		if (flags)
+			printf(" Unrecognized flags: 0x%02x", flags);
+		printf("\n");
+	}
+	return 0;
+}
+
 int main(int argc, char **argv) {
 	struct eeprom_dev *dev;
-	int ret;
+	int ch;
+	int writing = 0;
+	int features;
+	int32_t serial;
+	uint8_t new_mac[6];
+
+	int update_mac = 0;
+	int update_features = 0;
+	int update_serial = 0;
 
 	dev = eeprom_open(I2C_BUS, EEPROM_ADDRESS);
 	if (!dev)
 		return 1;
 
-	if (argc == 1) {
-		ret = eeprom_read(dev);
-		if (ret)
-			goto quit;
+	while ((ch = getopt(argc, argv, "m:s:f:w")) != -1) {
+		switch(ch) {
 
-		printf("Current EEPROM settings:\n");
-		printf("\tSignature:   %c%c%c%c%c%c\n",
-				dev->data.signature[0],
-				dev->data.signature[1],
-				dev->data.signature[2],
-				dev->data.signature[3],
-				dev->data.signature[4],
-				dev->data.signature[5]);
-		printf("\tVersion:     %d\n", dev->data.version);
-		printf("\tSerial:      %d\n", dev->data.serial);
-		printf("\tMAC:         %02x:%02x:%02x:%02x:%02x:%02x\n",
-				dev->data.mac[0], dev->data.mac[1],
-				dev->data.mac[2], dev->data.mac[3],
-				dev->data.mac[4], dev->data.mac[5]);
-		printf("\tFeatures:    0x%x\n", dev->data.features);
+		/* MAC address */
+		case 'm':
+			if (parse_mac(optarg, new_mac))
+				return 1;
+			update_mac = 1;
+			break;
+
+		/* Serial number */
+		case 's':
+			serial = strtoul(optarg, NULL, 0);
+			update_serial = 1;
+			break;
+
+		/* Featuresset */
+		case 'f':
+			features = parse_features(optarg);
+			if (features == -1)
+				return 1;
+			update_features = 1;
+			break;
+
+		/* Write data */
+		case 'w':
+			writing = 1;
+			break;
+
+		default:
+			printf("Unrecognized option: %c\n", ch);
+			print_usage(argv[0]);
+			return 1;
+		}
 	}
 
-	else
-		print_usage(argv[0]);
+	argc -= optind;
+	argv += optind;
 
-quit:
+	if (argc)
+		print_usage(argv[0]);
+	else if (!writing) {
+		if (update_mac || update_serial || update_features)
+			printf("Not writing data, as -w was not specified\n");
+		print_eeprom_data(dev);
+	}
+	else {
+		int ret;
+		ret = eeprom_read(dev);
+		if (ret)
+			return 1;
+		if (update_mac)
+			memcpy(&dev->data.mac, new_mac, sizeof(new_mac));
+		if (update_serial)
+			dev->data.serial = serial;
+		if (update_features)
+			dev->data.features = features;
+		memcpy(&dev->data.signature, NOVENA_SIGNATURE, sizeof(dev->data.signature));
+		dev->data.version = NOVENA_VERSION;
+
+		ret = eeprom_write(dev);
+		if (ret) {
+			printf("EEPROM write failed\n");
+			return 1;
+		}
+
+		printf("Updated EEPROM\n");
+	}
+
 	eeprom_close(&dev);
 
 	return 0;
