@@ -28,31 +28,6 @@ struct eeprom_dev {
 	struct novena_eeprom_data 	data;
 };
 
-struct feature {
-	uint32_t	flags;
-	char		*name;
-};
-
-static struct feature features[] = {
-	{
-		.name = "es8328",
-		.flags = 0x01,
-	},
-	{
-		.name = "pmb",
-		.flags = 0x02,
-	},
-	{
-		.name = "retina",
-		.flags = 0x04,
-	},
-	{
-		.name = "pixelqi",
-		.flags = 0x08,
-	},
-	{}
-};
-
 int parse_features(char *str) {
 	char *ctx;
 	char *sep = ",";
@@ -233,16 +208,19 @@ int print_usage(char *name) {
 	"    -s    Specify the device's serial number\n"
 	"    -f    A comma-delimited list of features present\n"
 	"    -w    Actually write the value to the EEPROM\n"
-	"\n"
-	"Valid features:\n"
-	"    es8328     There is an ES8328 audio codec present\n"
-	"    pmb        A power management board is attached\n"
-	"    retina     A retina LVDS display is attached\n"
-	"    pixelqi    A PixelQi LVDS display is attached\n"
-	"\n"
-	"Example:\n"
-	"  %s -f es8328,retina -s 12345 -w\n"
-	"", name, name);
+	"\n", name);
+
+	printf("Valid features:\n");
+	struct feature *feature = features;
+	while (feature->name) {
+		printf("    %-12s%s\n", feature->name, feature->descr);
+		feature++;
+	}
+	printf("\n");
+
+	printf("Example:\n"
+		"  %s -f es8328,retina -s 12345 -w\n"
+		"", name);
 	return 0;
 }
 

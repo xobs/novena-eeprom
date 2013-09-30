@@ -19,4 +19,40 @@ struct novena_eeprom_data {
 	uint16_t	features;
 } __attribute__((__packed__));
 
+struct feature {
+        uint32_t        flags;
+        char            *name;
+	char		*descr;
+};
+
+struct feature features[] = {
+	{
+		.name = "es8328",
+		.flags = 0x01,
+		.descr = "ES8328 audio codec",
+	},
+	{
+		.name = "pmb",
+		.flags = 0x02,
+		.descr = "Power Management Board",
+	},
+	{
+		.name = "retina",
+		.flags = 0x04,
+		.descr = "Retina-class dual-LVDS display",
+	},
+	{
+		.name = "pixelqi",
+		.flags = 0x08,
+		.descr = "PixelQi LVDS display",
+	},
+	{
+		.name = "pcie",
+		.flags = 0x10,
+		.descr = "PCI Express support",
+	},
+	{} /* Sentinal */
+};
+
+
 #endif /* __NOVENA_EEPROM_H__ */
