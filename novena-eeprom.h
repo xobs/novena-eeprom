@@ -27,29 +27,34 @@ struct feature {
 
 struct feature features[] = {
 	{
-		.name = "es8328",
+		.name  = "es8328",
 		.flags = 0x01,
 		.descr = "ES8328 audio codec",
 	},
 	{
-		.name = "pmb",
+		.name  = "pmb",
 		.flags = 0x02,
 		.descr = "Power Management Board",
 	},
 	{
-		.name = "retina",
+		.name  = "retina",
 		.flags = 0x04,
 		.descr = "Retina-class dual-LVDS display",
 	},
 	{
-		.name = "pixelqi",
+		.name  = "pixelqi",
 		.flags = 0x08,
 		.descr = "PixelQi LVDS display",
 	},
 	{
-		.name = "pcie",
+		.name  = "pcie",
 		.flags = 0x10,
 		.descr = "PCI Express support",
+	},
+	{
+		.name  = "gbit",
+		.flags = 0x20,
+		.descr = "Gigabit Ethernet",
 	},
 	{} /* Sentinal */
 };

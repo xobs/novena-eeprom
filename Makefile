@@ -10,5 +10,5 @@ all: $(OBJECTS)
 clean:
 	rm -f $(EXEC) $(OBJECTS)
 
-.c.o:
+.c.o: novena_eeprom.h
 	$(CC) -c $(CFLAGS) $(MY_CFLAGS) $< -o $@
