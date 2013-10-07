@@ -32,9 +32,9 @@ struct feature features[] = {
 		.descr = "ES8328 audio codec",
 	},
 	{
-		.name  = "pmb",
+		.name  = "senoko",
 		.flags = 0x02,
-		.descr = "Power Management Board",
+		.descr = "Senoko battery board",
 	},
 	{
 		.name  = "retina",
@@ -55,6 +55,11 @@ struct feature features[] = {
 		.name  = "gbit",
 		.flags = 0x20,
 		.descr = "Gigabit Ethernet",
+	},
+	{
+		.name  = "hdmi",
+		.flags = 0x40,
+		.descr = "HDMI Output",
 	},
 	{} /* Sentinal */
 };

@@ -254,7 +254,7 @@ int print_eeprom_data(struct eeprom_dev *dev) {
 				if (!matched)
 					printf(" (%s", feature->name);
 				else
-					printf(", %s", feature->name);
+					printf(",%s", feature->name);
 				matched++;
 				flags &= ~feature->flags;
 			}
