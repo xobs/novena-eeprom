@@ -230,7 +230,6 @@ int print_eeprom_data(struct eeprom_dev *dev) {
 	if (ret)
 		return ret;
 
-	printf("Current EEPROM settings:\n");
 	printf("\tSignature:   %c%c%c%c%c%c\n",
 			dev->data.signature[0],
 			dev->data.signature[1],
@@ -329,6 +328,7 @@ int main(int argc, char **argv) {
 	else if (!writing) {
 		if (update_mac || update_serial || update_features)
 			printf("Not writing data, as -w was not specified\n");
+		printf("Current EEPROM settings:\n");
 		print_eeprom_data(dev);
 	}
 	else {
@@ -351,7 +351,8 @@ int main(int argc, char **argv) {
 			return 1;
 		}
 
-		printf("Updated EEPROM\n");
+		printf("Updated EEPROM.  New values:\n");
+		print_eeprom_data(dev);
 	}
 
 	eeprom_close(&dev);
