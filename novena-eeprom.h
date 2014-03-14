@@ -4,16 +4,27 @@
 #include <stdint.h>
 
 #define NOVENA_SIGNATURE "Novena"
-#define NOVENA_VERSION 1
+#define NOVENA_VERSION 2
 
 
 /* Bitmask polarities used as flag */
-#define CHANNEL_PRESENT (1 << 0)
-#define DUAL_CHANNEL    (1 << 1)
-#define VSYNC_POLARITY  (1 << 2)
-#define HSYNC_POLARITY  (1 << 3)
-#define MAPPING_JEIDA   (1 << 4) /* If not JEIDA, then PSWG/SPWG */
-#define DATA_WIDTH_8    (1 << 5) /* If not 8-bit (24 bpp), then 6-bit (18 bpp) */
+enum modesetting_flags {
+
+	/* If 0, this display device is not present */
+	channel_present	= 0x01,
+
+	/* If this is lvds1 and this bit is set, use dual-channel LVDS */
+	dual_channel	= 0x02,
+
+	vsync_polarity	= 0x04,
+	hsync_polarity	= 0x08,
+
+	/* For LVDS, a value of 0 means PSWG, a value of 1 means JEIDA */
+	mapping_jeida	= 0x10,
+
+	/* If 0, channel is either 6-bit (LVDS) or 10-bit (HDMI) */
+	data_width_8bit	= 0x20,
+};
 
 struct modesetting {
 	uint32_t	frequency;
@@ -25,7 +36,7 @@ struct modesetting {
 	uint16_t	vback_porch;
 	uint16_t	vfront_porch;
 	uint16_t	vsync_len;
-	uint32_t	flags;
+	uint32_t	flags;		/* enum modesetting_flags mask */
 } __attribute__((__packed__));
 
 /*
@@ -34,57 +45,73 @@ struct modesetting {
  */
 struct novena_eeprom_data {
 	uint8_t			signature[6];	/* 'Novena' */
-	uint8_t			version;	/* always 1 */
+	uint8_t			version;	/* always 2 */
 	uint8_t			reserved1;
-	uint32_t		serial;
-	uint8_t			mac[6];
-	uint16_t		features;
+	uint32_t		serial;		/* 32-bit serial number */
+	uint8_t			mac[6];		/* Gigabit MAC address */
+
+	/* Features present, from struct feature features[] below */
+	uint16_t		features;	/* Native byte order */
+
+	/* Describes default resolutions of various output devices */
 	struct modesetting	lvds1;
 	struct modesetting	lvds2;
 	struct modesetting	hdmi;
+
+	/* An indicator of how large this particular EEPROM is */
+	uint32_t		eeprom_size;
+
+	/* If eepromoops is present, describes eepromoops storage */
+	uint32_t		eepromoops_offset;
+	uint32_t		eepromoops_length;
 } __attribute__((__packed__));
+
+
 
 struct feature {
         uint32_t        flags;
         char            *name;
 	char		*descr;
-};
-
-struct feature features[] = {
+} features[] = {
 	{
 		.name  = "es8328",
-		.flags = 0x01,
+		.flags = 0x0001,
 		.descr = "ES8328 audio codec",
 	},
 	{
 		.name  = "senoko",
-		.flags = 0x02,
+		.flags = 0x0002,
 		.descr = "Senoko battery board",
 	},
 	{
 		.name  = "retina",
-		.flags = 0x04,
-		.descr = "Retina-class dual-LVDS display",
+		.flags = 0x0004,
+		.descr = "Retina-class dual-LVDS display (deprecated)",
 	},
 	{
 		.name  = "pixelqi",
-		.flags = 0x08,
-		.descr = "PixelQi LVDS display",
+		.flags = 0x0008,
+		.descr = "PixelQi LVDS display (deprecated)",
 	},
 	{
 		.name  = "pcie",
-		.flags = 0x10,
+		.flags = 0x0010,
 		.descr = "PCI Express support",
 	},
 	{
 		.name  = "gbit",
-		.flags = 0x20,
+		.flags = 0x0020,
 		.descr = "Gigabit Ethernet",
 	},
 	{
 		.name  = "hdmi",
-		.flags = 0x40,
-		.descr = "HDMI Output",
+		.flags = 0x0040,
+		.descr = "HDMI Output (deprecated)",
+	},
+	{
+		.name  = "eepromoops",
+		.flags = 0x0080,
+		.descr = "EEPROM Oops storage",
 	},
 	{} /* Sentinal */
 };
