@@ -46,7 +46,7 @@ struct modesetting {
 struct novena_eeprom_data {
 	uint8_t			signature[6];	/* 'Novena' */
 	uint8_t			version;	/* always 2 */
-	uint8_t			reserved1;
+	uint8_t			page_size;	/* Size of EEPROM read/write page */
 	uint32_t		serial;		/* 32-bit serial number */
 	uint8_t			mac[6];		/* Gigabit MAC address */
 
