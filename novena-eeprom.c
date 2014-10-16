@@ -185,7 +185,8 @@ static int eeprom_export(struct eeprom_dev *dev, const char *filename) {
 	int ret;
 
 	/* Ensure we have a cached copy */
-	eeprom_read(dev);
+	if (eeprom_read(dev) != 0)
+		return 1;
 
 	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (-1 == fd) {
