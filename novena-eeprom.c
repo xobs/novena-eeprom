@@ -181,47 +181,48 @@ int eeprom_write(struct eeprom_dev *dev) {
 }
 
 static int eeprom_export(struct eeprom_dev *dev, const char *filename) {
-	int fd;
+	FILE *f;
 	int ret;
 
 	/* Ensure we have a cached copy */
-	eeprom_read(dev);
+	if (eeprom_read(dev) != 0)
+		return 1;
 
-	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	if (-1 == fd) {
+	f = fopen(filename, "w");
+	if (NULL == f) {
 		perror("Unable to open file for exporting");
 		return 1;
 	}
 
-	ret = write(fd, &dev->data, sizeof(dev->data));
-	if (ret != sizeof(dev->data)) {
+	ret = fwrite(&dev->data, sizeof(dev->data), 1, f);
+	if (ret != 1 {
 		perror("Unable to export");
-		close(fd);
+		fclose(f);
 		return 1;
 	}
 
-	close(fd);
+	fclose(f);
 	return 0;
 }
 
 static int eeprom_import(struct eeprom_dev *dev, const char *filename) {
-	int fd;
+	FILE *f;
 	int ret;
 
-	fd = open(filename, O_RDONLY);
-	if (-1 == fd) {
+	f = fopen(filename, "r");
+	if (NULL == f) {
 		perror("Unable to open file for importing");
 		return 1;
 	}
 
-	ret = read(fd, &dev->data, sizeof(dev->data));
-	if (ret != sizeof(dev->data)) {
+	ret = fread(&dev->data, sizeof(dev->data), 1, f);
+	if (ret != 1 {
 		perror("Unable to import");
-		close(fd);
+		fclose(f);
 		return 1;
 	}
 
-	close(fd);
+	fclose(f);
 
 	/* Mark the copy as cached, so it won't get re-read */
 	dev->cached = 1;
