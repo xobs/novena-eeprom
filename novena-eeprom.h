@@ -95,6 +95,7 @@ enum feature_flags {
 	feature_hdmi		= 0x0040,
 	feature_eepromoops	= 0x0080,
 	feature_rootsrc_sata	= 0x0100,
+	feature_heirloom	= 0x0200,
 };
 
 #ifndef __cplusplus	/* C++ doesn't support named assignment */
@@ -147,6 +148,11 @@ struct feature {
 		.name	= "sataroot",
 		.flags	= feature_rootsrc_sata,
 		.descr	= "Root device is SATA",
+	},
+	{
+		.name	= "heirloom",
+		.flags	= feature_heirloom,
+		.descr	= "Laptop is an Heirloom model",
 	},
 	{} /* Sentinal */
 };
