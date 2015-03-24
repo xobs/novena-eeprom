@@ -1,0 +1,2 @@
+version=3
+https://github.com/xobs/novena-eeprom/tags/ .*/v(\d[^n]*)\.(?:tgz|tbz2|txz|tar\.(?:gz|bz2|xz))

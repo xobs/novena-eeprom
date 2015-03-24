@@ -1,0 +1,17 @@
+Source: novena-eeprom
+Section: utils
+Priority: extra
+Maintainer: Jacob Appelbaum <jacob@appelbaum.net>
+Build-Depends: debhelper (>= 9),
+               gcc (>= 3),
+               make (>= 3)
+Standards-Version: 3.9.5
+Homepage: https://github.com/xobs/novena-eeprom/
+
+Package: novena-eeprom
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: novena eeprom editor
+ Novena boards contain a device-dependent descriptive EEPROM that defines
+ various parameters such as serial number, MAC address, and featureset. This
+ program allows you to view and manipulate this EEPROM list.

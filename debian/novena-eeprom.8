@@ -1,0 +1,142 @@
+.TH NOVENA-EEPROM 8 "14 Oct 2014" Novena "Linux System Administration"
+.SH NAME
+novena-eeprom \- view or modify the onboard serial EEPROM for Novena
+.SH SYNOPSIS
+\fBnovena-eeprom\fR
+[\fB-m\fR \fImac-address\fR]
+[\fB-s\fR \fIserial-number\fR]
+[\fB-f\fR \fIflag-list\fR]
+[\fB-o\fR \fIoops-start\fR[:\fIoops-length\fR]]
+[\fB-l\fR \fIeeprom-length\fR]
+[\fB-p\fR \fIeeprom-page-size\fR]
+[\fB-1\fR \fIlvds1-modesetting\fR]
+[\fB-2\fR \fIlvds2-modesetting\fR]
+[\fB-d\fR \fIhdmi-modesetting\fR]
+[\fB-w\fR]
+.TP
+\fBnovena-eeprom\fR [\fB-e\fR \fIexport-filename\fR]
+.TP
+\fBnovena-eeprom\fR [\fB-i\fR \fIimport-filename\fR]
+.TP
+\fBnovena-eeprom\fR [\fB-h\fR]
+
+.SH DESCRIPTION
+.LP
+Novena contains an onboard EEPROM that is used by the bootloader to determine
+everything from available featurs to where the root filesystem is located.
+You can use \fBnovena-eeprom\fR to view and modify this EEPROM data.
+.SH OPTIONS
+.TP
+.BI \-m " mac-address"
+MAC address for the gigabit ethernet port.  If set to the special value of
+\fIff:ff:ff:ff:ff:ff\fR, then a new address will be "randomly" generated at
+boot (when not much entropy is available.)
+.TP
+.BI \-s " serial-number"
+32-bit device-specific serial number.  Assigned at the factory, but you can
+change it if you really want to.
+.TP
+.BI \-f " feature-list"
+Select a list of features installed on this Novena.  Currently-defined features
+include:
+.TS
+allbox tab(^);
+c s
+c c
+l l.
+Available Features
+Flag^Description
+es8328^ES8328 audio codec
+senoko^Senoko battery board
+edp^eDP bridge chip (it6251)
+pcie^PCIe Express
+gbit^Gigabit Ethernet
+hdmi^HDMI output
+eepromoops^Log kernel panics to EEPROM
+sataroot^Use SATA as root filesystem
+.TE
+.TP
+.BI \-o " eepromoops-params"
+Specify the eepromoops offset start, and optionally size.  If one number is
+specified, this will set the eepromoops start, and the size will be unaffected.
+If you specify two numbers (delimited in some fashion, e.g. 1-2 or 100,200 or
+1000;2000), the second number will be set to the eepromoops length.
+.TP
+.BI \-p " eeprom-page-size"
+The number of bytes that can be written at once to the EEPROM.  Refer to
+the datasheet for this number.
+.TP
+.BI \-l " eeprom-length"
+The length (in bytes) of the EEPROM.
+.TP
+.BI \-1 " LVDS channel 1 modeline"
+.BI \-2 " LVDS channel 2 modeline"
+.BI \-m " LVDS channel 2 modeline"
+Specify modeline timings for the various output devices.  See \fBMODELINES\fR
+below for more information.
+
+If a channel is present, specify the \fIchannel_present\fR flag.  If you're
+using a dual-lane LVDS device, specify \fIdual_channel\fR for LVDS channel 0.
+.TP
+.BI \-w
+Write the specified values to the EEPROM.  Without this flag, no values
+will be written.
+.TP
+.BI \-e " output-filename"
+Export the current EEPROM to a file.  Useful for taking backups, and copying
+files from one device to another.
+.TP
+.BI \-i " import-filename"
+Import a file to the EEPROM.  Used to restore an EEPROM file to a device.  Note
+that you can specify additional parameters to modify a file as it gets written
+to the board.  For example, you can import an EEPROM and then specify a new
+MAC address and serial number all in one step.
+
+In order to actually write the data, you must specify \fB-w\fR.  Otherwise,
+\fBnovena-eeprom\fR will simply display the contents of the file.
+.TP
+.BI \-h
+Print out a help message.
+
+.SH MODELINES
+
+You can specify modelines for various display devices.  The entire line should
+be quoted.  Standard X11 Modeline format is supported, but the flags are
+nonstandard:
+.TS
+allbox tab(^);
+c s
+c c
+l l.
+Available Modeline Flags
+Flag^Description
+channel_present^This channel is present
+dual_channel^Run LVDS in dual-channel
+vsync_polarity^Positive VSync
+hsync_polarity^Positive HSync
+\+HSYNC^Alias for hsync_polarity
+\+VSYNC^Alias for vsync_polarity
+mapping_jeida^Use JEIDA mapping for LVDS
+data_width_8bit^Use 8-bit data
+ignore_settings^Attempt to auto-detect the mode
+.TE
+
+You may only run LVDS channel 1 in dual-channel mode.  In this case, you
+should still specify that LVDS channel 2 is present.  Marking other devices
+as \fIdual_channel\fR has no effect.
+
+Negative HSync or VSync is specified by omitting the polarity flag, or
+specifying either \fI\-HSYNC\fR or \fI\-VSYNC\fR.
+
+If \fIdata_width_8bit\fR is omitted, then an LVDS channel will use 6-bit data,
+and the HDMI channel will use 10-bit data.
+
+The mapping is only valid for LVDS.  If \fImapping_jeida\fR is not specified,
+then PSWG/SWPG data mapping will be used.
+
+An example modeline is:
+
+.B 'Modeline "lvds1" 148.500  1920 2068 2156 2200   1080 1116 1120 1125 +HSync +VSync channel_present dual_channel mapping_jeida data_width_8bit'
+
+.SH AUTHORS
+Written by Sean Cross <xobs@kosagi.com>

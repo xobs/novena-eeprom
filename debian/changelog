@@ -1,0 +1,23 @@
+novena-eeprom (2.2-1) unstable; urgency=medium
+
+  * Add 'heirloom' EEPROM flag
+
+ -- Sean Cross <xobs@kosagi.com>  Tue, 24 Mar 2015 12:52:47 +0800
+
+novena-eeprom (2.1-1) unstable; urgency=medium
+
+  * Improve reliability of file export.
+
+ -- Sean Cross <xobs@kosagi.com>  Fri, 17 Oct 2014 12:26:39 +0800
+
+novena-eeprom (2.0-1) unstable; urgency=medium
+
+  * Updated to novena-eeprom_2.0
+
+ -- Sean Cross <xobs@kosagi.com>  Thu, 16 Oct 2014 10:56:58 +0800
+
+novena-eeprom (1.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #741668)
+
+ -- Jacob Appelbaum <jacob@appelbaum.net>  Sat, 15 Mar 2014 12:08:44 +0000
