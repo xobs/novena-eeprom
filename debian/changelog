@@ -1,3 +1,9 @@
+novena-eeprom (2.3-1) unstable; urgency=medium
+
+  * Add 'lidbootblock' flag
+
+ -- Sean Cross <xobs@kosagi.com>  Mon, 27 Apr 2015 12:05:17 +0800
+
 novena-eeprom (2.2-1) unstable; urgency=medium
 
   * Add 'heirloom' EEPROM flag
