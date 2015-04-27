@@ -368,7 +368,7 @@ int print_usage(char *name) {
 	printf("Valid features:\n");
 	struct feature *feature = features;
 	while (feature->name) {
-		printf("    %-12s%s\n", feature->name, feature->descr);
+		printf("    %-16s%s\n", feature->name, feature->descr);
 		feature++;
 	}
 	printf("\n");
