@@ -96,6 +96,7 @@ enum feature_flags {
 	feature_eepromoops	= 0x0080,
 	feature_rootsrc_sata	= 0x0100,
 	feature_heirloom	= 0x0200,
+	feature_lidbootblock	= 0x0400,
 };
 
 #ifndef __cplusplus	/* C++ doesn't support named assignment */
@@ -153,6 +154,11 @@ struct feature {
 		.name	= "heirloom",
 		.flags	= feature_heirloom,
 		.descr	= "Laptop is an Heirloom model",
+	},
+	{
+		.name	= "lidbootblock",
+		.flags	= feature_lidbootblock,
+		.descr	= "Prevent booting when lid is shut",
 	},
 	{} /* Sentinal */
 };
